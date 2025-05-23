@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.integrate import solve_ivp
-
+from utils import rotation_angle_between
+from txt_reader import *
 plt.style.use('seaborn-poster')
-
+from utils import *
 import numpy as np
 
 
@@ -59,7 +60,7 @@ def project_to_SO3(R):
 
 
 
-def solve_cosserat_ivp(d, L, E, poisson, rho, position, rotation, n0, m0):
+def solve_cosserat_ivp(d, L, E, poisson, rho, position, rotation, n0, m0,print_=False):
     """
     Résout les équations statiques d'une tige de Cosserat avec `solve_ivp`.
 
@@ -82,7 +83,7 @@ def solve_cosserat_ivp(d, L, E, poisson, rho, position, rotation, n0, m0):
     g = 9.81                # Gravité
 
 
-    def Cosserat(s,Gamma, v_star=np.array([0,0,1]), u_star=np.zeros(3), f=np.zeros(3), l=np.zeros(3)):
+    def Cosserat(s, Gamma, v_star=np.array([0, 0, 1]), u_star=np.zeros(3), f=np.zeros(3), l=np.zeros(3)):
         """
         Calcule dGamma/ds à partir de l'état Gamma et des paramètres mécaniques.
         
@@ -98,39 +99,45 @@ def solve_cosserat_ivp(d, L, E, poisson, rho, position, rotation, n0, m0):
         Retourne :
             dGamma/ds : np.array de taille 18
         """
-
-
+        #print(f"--- Debug: s = {s} ---")
+        #print(f"Gamma = {Gamma}")
 
         p = Gamma[0:3]
-        #print("p =",p)
-        #R = project_to_SO3(Gamma[3:12].reshape((3, 3)))
-        R = (Gamma[3:12].reshape((3, 3)))
-
-        #print("R = ", R)
+        #print(f"p = {p}")
+        R = Gamma[3:12].reshape((3, 3))
+        #print(f"R (reshaped) = \n{R}")
         n = Gamma[12:15]
-        #print("n =",n)
+        #print(f"n = {n}")
         m = Gamma[15:18]
-        #print("m =",m)
-
+        #print(f"m = {m}")
 
         last_v = Gamma[18:21]
+        #print(f"last_v = {last_v}")
         last_u = Gamma[21:24]
-
-
+        #print(f"last_u = {last_u}")
 
         v = np.linalg.inv(Kse) @ R.T @ n + v_star
-        u = (np.linalg.inv(Kbt) @ m ) + u_star
+        #print(f"v = {v}")
+        u = np.linalg.inv(Kbt) @ m + u_star
+        #print(f"u = {u}")
 
         dv = v - last_v
+        #print(f"dv = {dv}")
         du = u - last_u
+        #print(f"du = {du}")
 
         # Équations (6) et (7)
         dp = R @ v
+        #print(f"dp = {dp}")
         dR = R @ hat(u)
+        #print(f"dR = \n{dR}")
 
         f = np.array([0, 0, -A * rho * g])
+        #print(f"f (external force) = {f}")
         dn = -f
-        dm = -np.cross(dp,n)-l
+        #print(f"dn = {dn}")
+        dm = -np.cross(dp, n) - l
+        #print(f"dm = {dm}")
 
         # Recompose dGamma/ds
         dGamma = np.zeros_like(Gamma)
@@ -140,6 +147,9 @@ def solve_cosserat_ivp(d, L, E, poisson, rho, position, rotation, n0, m0):
         dGamma[15:18] = dm
         dGamma[18:21] = dv
         dGamma[21:24] = du
+
+        #print(f"dGamma = {dGamma}")
+        #print("--- End Debug ---\n")
 
         return dGamma
 
@@ -165,6 +175,16 @@ def solve_cosserat_ivp(d, L, E, poisson, rho, position, rotation, n0, m0):
     # Solve
     t_eval = np.linspace(0, L, int(L / 0.01) + 1)
     sol = solve_ivp(Cosserat_wrapper, [0.0, L], Gamma0, t_eval=t_eval)
+
+    p = sol.y[:3,-1]
+
+    if print_:
+        print("p:", p)
+        print("T3:", T3)
+        print("distance:", np.linalg.norm(p - T3))
+        print("R :" , sol.y[3:12,-1].reshape(3,3))
+        print("R3 :", R3)
+        print("diff angle:", rotation_angle_between(R3, sol.y[3:12,-1].reshape(3,3)))
 
     return sol
 """
