@@ -16,10 +16,13 @@ def get_cosserat_gamma0(start,end,
                         R1 = np.matrix([[1,0,0],[0,1,0],[0,0,1]]),
                         R2 = np.matrix([[1,0,0],[0,1,0],[0,0,1]]),
                         init_shape=None ,
-                        print_=False,plot=False, 
+                        print_=False,plot=False, save=False,
                         n_elem=49,E=3e7, poisson=0.5, rho=1400,
                         d=0.01, L=0.60,
-                        xtol=1e-6, 
+                        xtol=1e-8, 
+                        triple_opt = False,
+                        initial_guess=None,
+                        maxiter=600,
                         ):
     
 
@@ -37,11 +40,16 @@ def get_cosserat_gamma0(start,end,
 
 
     # Initial guess for n0 and m0
-    initial_guess = np.array([-0.17834246, -0.09977787, -0.21975261,
+    if initial_guess is None:
+        print("Using default initial guess for n0 and m0")
+        initial_guess = np.array([-0.17834246, -0.09977787, -0.21975261,
                -0.00928889,  0.02773056, -0.01566086])
+        
+    else:
+        print("Using provided initial guess for n0 and m0:", initial_guess)
     
 
-    def residu_dernier_point(x,print_=False,plot=False):
+    def residu_dernier_point_debut(x,print_=False,plot=False):
 
 
         n0 = x[:3]
@@ -128,22 +136,94 @@ def get_cosserat_gamma0(start,end,
 
         return  residu
 
+    def residu_dernier_point(x,print_=False,plot=False):
+        n0 = x[:3]
+        m0 = x[3:6]
+
+        sol = solve_cosserat_ivp(
+            d=d, L=L, E=E, poisson=poisson, rho=rho,
+            position=start,
+            rotation=R1,
+            n0=n0,
+            m0=m0
+        )
+
+        # --- Résidu de position (3,)
+        positions_calulées = np.array(sol.y[:3])
+
+        
+
+        residu = []
+
+        for i in range(positions_calulées.shape[1]):
+            residu.append(np.linalg.norm(positions_calulées[:, i] - init_shape[:, i])*10)
+            if print_:
+                print(f"Position {i}: {positions_calulées[:, i]} vs Target: {init_shape[:, i]} -> Norm : {np.linalg.norm(positions_calulées[:, i] - init_shape[:, i])} Residual: {residu[-1]}")
+
+            
+
+        residu = np.array(residu)
+
+        if plot:
+            fig, ax = plt.subplots(figsize=(10, 6))
+            ax.plot(positions_calulées[0], positions_calulées[2], label='Calculated Position', marker='o')
+            ax.plot(init_shape[0], init_shape[2], label='Target Position', marker='x')
+            ax.set_xlabel('X Position')
+            ax.set_ylabel('Z Position')
+            ax.set_title('Cable Position Comparison')
+            ax.legend()
+            plt.grid()
+            plt.show(block=True)
+
+        return  residu
+
 
     # Use least_squares to find the optimal n0 and m0
 
+    print("------------------------")
+
+    print("maxiter:", maxiter)
     initermediate_result = least_squares(
             residu_dernier_point,
             initial_guess,
             xtol=xtol,
+            verbose=1,
+            max_nfev=maxiter,
             )
     
-    result = least_squares(
+    intermediate_time = time.time()
+
+    if triple_opt:
+        initermediate_result2 = least_squares(
+            residu_dernier_point,
+            initermediate_result.x,
+            xtol=xtol,
+            verbose=1,
+            max_nfev=maxiter,
+            )
+        
+        result = least_squares(
+            residu_dernier_point_fin,
+            initermediate_result2.x,
+            xtol=xtol,
+            verbose=1,
+            max_nfev=maxiter,
+            )
+        
+
+    else:
+
+        result = least_squares(
             residu_dernier_point_fin,
             initermediate_result.x,
             xtol=xtol,
+            verbose=1
             )
+        
+    print("------------------------")
+
     
-    if plot :
+    if plot or save:
     
         n0_opt = result.x[:3]
         m0_opt = result.x[3:6]
@@ -180,7 +260,7 @@ def get_cosserat_gamma0(start,end,
         sol_inter = solve_cosserat_ivp(d=d, L=L, E=E, poisson=poisson, rho=rho,
             position=start, rotation=R1, n0=initermediate_result.x[:3], m0=initermediate_result.x[3:6], print_=False)
 
-
+        print("------------------------")
         print("Initial guess:", initial_guess)
         print("Intermediate result:", initermediate_result.x)
         print("Final result:", result.x)
@@ -191,24 +271,42 @@ def get_cosserat_gamma0(start,end,
         plot_cable(sol_initial, 'blue', ax, ax2, ax3, end, n0=initial_guess[:3], m0=initial_guess[3:6],E=E)
 
 
+        if triple_opt:
 
+            sol_inter2 = solve_cosserat_ivp(d=d, L=L, E=E, poisson=poisson, rho=rho,
+                position=start, rotation=R1, n0=initermediate_result2.x[:3], m0=initermediate_result2.x[3:6], print_=False)
+            plot_cable(sol_inter2, 'orange', ax, ax2, ax3, end, n0=initermediate_result2.x[:3], m0=initermediate_result2.x[3:6],E=E)
+
+        print("-----------------------")
+
+        print("plot :",plot)
         show_plot(block=True,
-                   title="res:"+numpy_array_to_string(result.x,print_=False)+"_init:"+numpy_array_to_string(initial_guess,print_=False),
-                   plot=False,
-                   folder="results_gamma0"
+                   title="res:"+numpy_array_to_string(result.x,print_=False),
+                   #+"_init:"+numpy_array_to_string(initial_guess,print_=False),
+                   plot=plot,
+                   folder="results_gamma0",
+                   save=save
                    )
+        print("-----------------------")
         
 
 
     if print_:
 
+        n0_opt = result.x[:3]
+        m0_opt = result.x[3:6]
+
+        print("residu (dm) : ",residu_dernier_point_fin(result.x,print_=False,plot=False))
+
+        print("------------------------")
+
         end_time = time.time()
         execution_time = end_time - start_time
-        print(f"Execution time: {execution_time:.4f} seconds")
+        first_intermediate_time = intermediate_time - start_time
+        second_intermediate_time = end_time - intermediate_time
+        print(f"total time: {execution_time:.4f} seconds")
+        print(f"first intermediate time: {first_intermediate_time:.4f} seconds")
+        print(f"second intermediate time: {second_intermediate_time:.4f} seconds")
 
-
-
-
-
-
+    return start,R1,n0_opt,m0_opt
     

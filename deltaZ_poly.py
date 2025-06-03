@@ -191,13 +191,11 @@ def deltaZ_poly(p1,p2,L=0.6,plot=False,nb_points=50,print_distance=False):
 
     d = np.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2 + dz**2)
 
-    print(f"Longueur horizontale du câble : {d}")
-    print(f"Longueur verticale du câble : {dz}")
+   
     l = L/np.sqrt((d*dz))
 
     x_estime = interp_x_from_l(l)
 
-    print(f"x correspondant à longueur={l} : {x_estime}")
 
     X_points = np.linspace(0, 1, nb_points)
 

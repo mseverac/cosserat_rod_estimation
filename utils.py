@@ -191,10 +191,10 @@ def plot_cable(sol, color, ax, ax2, ax3, T3,n0=None, m0=None,E=None):
 
 
 
-def show_plot(block=True, title=None,plot=True,folder="plots"):
+def show_plot(block=True, title=None,plot=True,folder="plots",save=True):
 
 
-    if title is not None:
+    if title is not None and save:
         if not os.path.exists(folder):
             os.makedirs(folder)
         plt.savefig(f"{folder}/{title}.png")
