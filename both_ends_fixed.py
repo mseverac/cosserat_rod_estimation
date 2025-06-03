@@ -30,7 +30,7 @@ class GeneralConstraintSimulator(
     pass
 
 
-def cosserat_get_cable_state(start, end,rod_length=0.6, n_elem=50,E=1e7, poisson_ratio=0.5):
+def cosserat_get_cable_state(start, end,rod_length=0.6, n_elem=50,E=1e7, poisson_ratio=0.5,end_sim_time=0.10):
     """Simule un câble avec les deux extrémités fixées et retourne pp_list."""
     
     # Simulation container
@@ -47,7 +47,7 @@ def cosserat_get_cable_state(start, end,rod_length=0.6, n_elem=50,E=1e7, poisson
 
     dt = 1e-5
     damping_constant = 2.0
-    final_time = 0.10
+    final_time = end_sim_time  # seconds
     total_steps = int(final_time / dt)
     diagnostic_step_skip = 5
 
@@ -168,7 +168,7 @@ fps = 24
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_all_components(pp_list, rod_length):
+def plot_all_components(pp_list, rod_length = 0.6):
     # Récupérer les dernières données
     last_step = -1
     positions = np.array(pp_list["position"][last_step])  # Shape (3, n_elem+1)

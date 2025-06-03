@@ -7,6 +7,7 @@ from utils import *
 from txt_reader import *
 from test_solve_ivp import solve_cosserat_ivp
 import random
+from both_ends_fixed import cosserat_get_cable_state,plot_all_components
 
 
 #distance entre le capteur de force et le point d'attache de la corde
@@ -44,17 +45,10 @@ for m0 in m0s :
         print("m0:", m0)"""
 
 
-sols = None
-if sols is not None:
-    colors = plt.cm.viridis(np.linspace(0, 1, len(sols)))
-    for sol, color,(n0,m0) in zip(sols, colors,wrenches):
-        plot_cable(sol, color, ax, ax2, ax3, T3,n0=n0, m0=m0)
 
 
 
-
-
-def dist_dernier_point(x,plot=False,print_=False,E_arg=None): 
+def dist_dernier_point(x,plot=False,print_=True): 
 
     if len(x) == 4:
 
@@ -84,10 +78,8 @@ def dist_dernier_point(x,plot=False,print_=False,E_arg=None):
 
 
     
-    if E_arg is not None:
-        E = E_arg
 
-
+    
     sol = solve_cosserat_ivp(
         d=d, L=0.60, E=E, poisson=poisson, rho=rho,
         position=T2,
@@ -117,6 +109,54 @@ def dist_dernier_point(x,plot=False,print_=False,E_arg=None):
     #print("diff angle:", rotation_angle_between(R3, sol.y[3:12,-1].reshape(3,3)))
     return np.linalg.norm(p - T3)#+0.0*np.abs(rotation_angle_between(R3, sol.y[3:12,-1].reshape(3,3)))
 
+
+
+def print_gamma0(pplist):
+    last_step = -1
+    positions = np.array(pp_list["position"][last_step])  # Shape (3, n_elem+1)
+    velocities = np.array(pp_list["velocity"][last_step])  # Shape (3, n_elem+1)
+    directors = np.array(pp_list["directors"][last_step])  # Shape (3, 3, n_elem)
+    internal_forces = np.array(pp_list["internal_forces"][last_step])  # Shape (3, n_elem)
+    internal_torques = np.array(pp_list["internal_torques"][last_step])  # Shape (3, n_elem)
+
+    print("position0:", positions[:,0])
+    print("directors0:", directors[:,:,0])
+    print("internal_forces0:", internal_forces[:,0])
+    print("internal_torques0:", internal_torques[:,0])
+
+    return positions[:,0], directors[:,:,0], internal_forces[:,0], internal_torques[:,0]
 #print(dist_dernier_point(0.01, 1e8, 0.4, 1000))
 
 
+pp_list = cosserat_get_cable_state(T2,T3,E=5e6,end_sim_time=50)
+
+
+plot_all_components(pp_list=pp_list )
+
+p0,r0,n0,m0 = print_gamma0(pp_list)
+
+print("start : ", T2)
+print("end : ", T3)
+
+
+sol = solve_cosserat_ivp(
+    d=0.01, L=0.30, E=5e6, poisson=0.4, rho=1400,
+    position=p0,
+    rotation=r0,
+    n0=n0,
+    m0=m0,
+    print_=False
+)
+print("sol shape:", sol.y.shape)
+fig,ax,ax2,ax3 =  initialize_plot()
+
+print("here")
+
+plot_cable(sol, 'red', ax, ax2, ax3, T3,n0=n0, m0=m0)
+
+show_plot()
+
+
+
+
+    
