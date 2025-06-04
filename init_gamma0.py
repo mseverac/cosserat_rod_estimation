@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 from cosserat_nordbo.cosserat_rod_estimation.utils import *
 from cosserat_nordbo.cosserat_rod_estimation.test_solve_ivp import solve_cosserat_ivp
 from scipy.optimize import root
 import numpy as np
 import matplotlib.pyplot as plt
 from cosserat_nordbo.cosserat_rod_estimation.both_ends_fixed import cosserat_get_cable_state   
+=======
+from utils import *
+from parameters_computing import solve_cosserat_ivp
+from scipy.optimize import root
+import numpy as np
+import matplotlib.pyplot as plt
+from both_ends_fixed import cosserat_get_cable_state   
+>>>>>>> 136a5746356cae69eb4a918d8cd7e3a0d8df3bbe
 import time 
 
 from scipy.optimize import root
@@ -31,14 +40,21 @@ def get_cosserat_gamma0(start,end,
     
 
     if init_shape is None:
+<<<<<<< HEAD
         print("No initial shape provided, using Cosserat cable state to initialize.")
+=======
+>>>>>>> 136a5746356cae69eb4a918d8cd7e3a0d8df3bbe
         pp_list = cosserat_get_cable_state(
             start,end,n_elem=49,E=E)
 
         last_step = -1 
+<<<<<<< HEAD
         init_shape = np.array(pp_list["position"][last_step]) 
 
         print("Initial shape shape (init_shape):", init_shape.shape) 
+=======
+        init_shape = np.array(pp_list["position"][last_step])  
+>>>>>>> 136a5746356cae69eb4a918d8cd7e3a0d8df3bbe
 
 
 
@@ -154,6 +170,11 @@ def get_cosserat_gamma0(start,end,
         # --- Résidu de position (3,)
         positions_calulées = np.array(sol.y[:3])
 
+<<<<<<< HEAD
+=======
+        
+
+>>>>>>> 136a5746356cae69eb4a918d8cd7e3a0d8df3bbe
         residu = []
 
         for i in range(positions_calulées.shape[1]):
@@ -309,6 +330,7 @@ def get_cosserat_gamma0(start,end,
         print(f"first intermediate time: {first_intermediate_time:.4f} seconds")
         print(f"second intermediate time: {second_intermediate_time:.4f} seconds")
 
+<<<<<<< HEAD
 
     sol = solve_cosserat_ivp(
         d=d, L=L, E=E, poisson=poisson, rho=rho,
@@ -319,4 +341,7 @@ def get_cosserat_gamma0(start,end,
     )
 
     return start,R1,n0_opt,m0_opt,sol
+=======
+    return start,R1,n0_opt,m0_opt
+>>>>>>> 136a5746356cae69eb4a918d8cd7e3a0d8df3bbe
     

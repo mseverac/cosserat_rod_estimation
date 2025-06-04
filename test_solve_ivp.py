@@ -6,6 +6,7 @@ from txt_reader import *
 plt.style.use('seaborn-poster')
 from utils import *
 import numpy as np
+import time
 
 
 

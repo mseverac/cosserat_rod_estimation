@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
+from utils import *
 
 
 from cosserat_nordbo.cosserat_rod_estimation.utils import plot_frame
@@ -141,173 +142,72 @@ for i, (torque, force) in enumerate(zip(torques, forces)):
     torques2[i] = torque + np.dot(r, force) 
 
 
+<<<<<<< HEAD
 # Exemple d'utilisation :
+=======
 
-
-"""
-sol = solve_cosserat_ivp(
-    d=0.01, L=0.60, E=3e9, poisson=0.4, rho=1000,
-    position=T2,
-    rotation=R2,
-    n0=forces[0],
-    m0=torques[0]
-)
-
-
-sols = []
-ds = []
-Es = []
-poissons = []
-rhos = []
-for _ in range(10):
-    d = 0.01 + random.uniform(-0.001, 0.001)
-    L = 0.60  # Keeping L constant
-    E = pow(10,random.uniform(7,9))
-    poisson = 0.4 + random.uniform(-0.2, 0.4)
-    rho = 1000 + random.uniform(-100, 600)
-    ds.append(d)
-    Es.append(E)
-    poissons.append(poisson)
-    rhos.append(rho)
+def initialize_plot():
     
-    sol = solve_cosserat_ivp(
-        d=d, L=L, E=E, poisson=poisson, rho=rho,
-        position=T2,
-        rotation=R2,
-        n0=forces[0],
-        m0=torques[0]
-    )
+    fig = plt.figure(figsize=(16, 10))
 
-    sols.append(sol)
-for i in range(2):
-    d = 0.01 
-    L = 0.60  
-    E = 10e8
-    poisson = 0.9
-    rho = 1000 
-    if i == 1:
-        rho = 10000
+    # 3D plot (large on the left)
+    ax = fig.add_subplot(121, projection='3d')
+    ax.set_xlim([-0.5, 0.5])
+    ax.set_ylim([-0.5, 0.5])
+    ax.set_zlim([-0.5, 0.5])
+>>>>>>> 136a5746356cae69eb4a918d8cd7e3a0d8df3bbe
 
-    sols.append(solve_cosserat_ivp(
-        d=d, L=L, E=E, poisson=poisson, rho=rho,
-        position=T2,
-        rotation=R2,
-        n0=forces[0],
-        m0=torques[0]
-    ))
+    ax.set_box_aspect([1, 1, 1])  # For isotropic axes
 
-"""
-fig = plt.figure(figsize=(16, 10))
+    """print("positions1:", positions1[0])
+    print("rotations1:", rotations1[0])
+    print("positions2:", positions2[0])
+    print("rotations2:", rotations2[0])"""
 
-# 3D plot (large on the left)
-ax = fig.add_subplot(121, projection='3d')
-ax.set_xlim([-0.5, 0.5])
-ax.set_ylim([-0.5, 0.5])
-ax.set_zlim([-0.5, 0.5])
+    # Frame 1: Identity
+    R1 = np.eye(3)
+    T1 = np.array([0, 0, 0])
+    plot_frame(ax, R1, T1, length=0.8, name="F0")
 
-ax.set_box_aspect([1, 1, 1])  # For isotropic axes
+    R2 = rotations2[0]
+    T2 = positions2[0]
+    plot_frame(ax, R2, T2, length=0.8, name="start")
 
-"""print("positions1:", positions1[0])
-print("rotations1:", rotations1[0])
-print("positions2:", positions2[0])
-print("rotations2:", rotations2[0])"""
-
-# Frame 1: Identity
-R1 = np.eye(3)
-T1 = np.array([0, 0, 0])
-plot_frame(ax, R1, T1, length=0.8, name="F0")
-
-R2 = rotations2[0]
-T2 = positions2[0]
-plot_frame(ax, R2, T2, length=0.8, name="start")
-
-R3 = rotations1[0]
-T3 = positions1[0]
-plot_frame(ax, R3, T3, length=0.8, name="end")
+    R3 = rotations1[0]
+    T3 = positions1[0]
+    plot_frame(ax, R3, T3, length=0.8, name="end")
 
 
 
-# Create additional 2D subplots for the cable visualization
-ax2 = fig.add_subplot(222)  # z vs x
-ax2.set_xlabel('x')
-ax2.set_ylabel('z')
-ax2.set_title('z vs x')
-ax2.grid()
+    # Create additional 2D subplots for the cable visualization
+    ax2 = fig.add_subplot(222)  # z vs x
+    ax2.set_xlabel('x')
+    ax2.set_ylabel('z')
+    ax2.set_title('z vs x')
+    ax2.grid()
 
-ax3 = fig.add_subplot(224)  # z vs y
-ax3.set_xlabel('y')
-ax3.set_ylabel('z')
-ax3.set_title('z vs y')
-ax3.grid()
-
-def format_array_to_string(array):
-    """
-    Convert a NumPy array of floats to a string with numbers truncated to 3 decimal places.
-    """
-    return np.array2string(array, formatter={'float_kind': lambda x: f"{x:.3f}"})
+    ax3 = fig.add_subplot(224)  # z vs y
+    ax3.set_xlabel('y')
+    ax3.set_ylabel('z')
+    ax3.set_title('z vs y')
+    ax3.grid()
 
 
-def format_scientific_notation(value):
-    """
-        Convert a float to a string in scientific notation with 2 decimal places.
-        """
-    return f"{value:.2e}"
+
+    plot_frame(ax, R1, T1, length=0.8, name="F0")
+
+    plot_frame(ax, R2, T2, length=0.8, name="start")
 
 
-def plot_cable(sol, color, ax, ax2, ax3, T3,n0=None, m0=None,E=None):
-    """
-    Plot the cable represented by sol on the provided axes.
+    plot_frame(ax, R3, T3, length=0.8, name="end")
 
-    Parameters:
-    - sol: The solution object containing the cable data.
-    - color: The color to use for the cable.
-    - ax: The 3D axis for the cable plot.
-    - ax2: The 2D axis for the z vs x plot.
-    - ax3: The 2D axis for the z vs y plot.
-    - ax4: The 2D axis for the x, y, z vs s plot.
-    - T3: The reference point to scatter on the 2D plots.
-    """
-    # Plot the position of each point of the cable in the 3D figure
-    ax.plot(sol.y[0], sol.y[1], sol.y[2], label='Cable', color=color, linewidth=2)
-
-    # Optionally, scatter the points for better visualization
-    #ax.scatter(sol.y[0], sol.y[1], sol.y[2], color=color, s=10, label='Cable Points')
-
-    # Plot z vs x
-    if E is not None:
-        ax2.plot(sol.y[0], sol.y[2], color=color,label="E : "+format_scientific_notation(E))
-    else:
-        ax2.plot(sol.y[0], sol.y[2], color=color)
-
-    ax2.legend()
-
-    ax2.scatter(T3[0], T3[2], color='green', marker='x')
-
-    # Plot z vs y
-    if n0 is not None : 
-       
-        ax3.plot(sol.y[1], sol.y[2], color=color, label=f"n0 : {format_array_to_string(n0)} ,m0 : {format_array_to_string(m0)}")
-    ax3.scatter(T3[1], T3[2], color='green', marker='x')
-    ax3.legend()
-    
+    return fig, ax, ax2, ax3
 
 R1 = np.eye(3)
 T1 = np.array([0, 0, 0])
-plot_frame(ax, R1, T1, length=0.8, name="F0")
 
 R2 = rotations2[0]
 T2 = positions2[0]
-plot_frame(ax, R2, T2, length=0.8, name="start")
 
 R3 = rotations1[0]
 T3 = positions1[0]
-plot_frame(ax, R3, T3, length=0.8, name="end")
-
-
-def show_plot():
-    plt.tight_layout()
-    plt.show()
-
-
-
-# Print shapes of the a

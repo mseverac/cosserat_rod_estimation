@@ -191,12 +191,21 @@ def deltaZ_poly(p1,p2,L=0.6,plot=False,nb_points=50,print_distance=False):
         dz = 1e-4
         print("dz is too small, setting to 1e-4 to avoid division by zero.")
 
+<<<<<<< HEAD
     d = np.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2 )
     l = L*np.sqrt(2)/np.sqrt(d**2 + dz**2)
 
     x_estime = interp_x_from_l(l)
 
     
+=======
+   
+    l = L/np.sqrt((d*dz))
+
+    x_estime = interp_x_from_l(l)
+
+
+>>>>>>> 136a5746356cae69eb4a918d8cd7e3a0d8df3bbe
     X_points = np.linspace(0, 1, nb_points)
 
     P_func = sp.lambdify(X, P.subs(x, x_estime), 'numpy')  # Convertir l'expression sympy en fonction numpy

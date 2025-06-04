@@ -1,37 +1,47 @@
 from scipy.optimize import minimize
 import numpy as np
+import time   # <-- pour mesurer le temps
 
-def minimize_with_early_stop(fun, x0, threshold=1e-3, method='L-BFGS-B', bounds=None, options=None):
+def minimize_with_early_stop(
+    fun,
+    x0,
+    threshold=1e-3,
+    max_time=None,          # ← nouveau paramètre (en secondes, None ⇢ pas de limite)
+    method='L-BFGS-B',
+    bounds=None,
+    options=None,
+):
     """
-    Minimisation avec arrêt anticipé si la fonction objectif devient inférieure à `threshold`.
+    Minimisation avec arrêt anticipé :
+      • si f(x) passe sous `threshold`
+      • OU si la durée dépasse `max_time` (en secondes)
 
-    Paramètres :
-        - fun : fonction à minimiser (doit accepter un vecteur x)
-        - x0 : point de départ (np.array)
-        - threshold : valeur de f(x) en dessous de laquelle l'optimisation s'arrête
-        - method : méthode d'optimisation (défaut 'L-BFGS-B')
-        - bounds : bornes sur les variables (liste de tuples)
-        - options : dictionnaire d'options scipy.optimize.minimize
-
-    Retour :
-        Un objet contenant .x, .fun, .success, .message
+    Renvoie un objet possédant .x, .fun, .success, .message
     """
 
-    # Pour stocker la meilleure solution rencontrée
-    best_solution = {'x': None, 'fun': None}
+    best_solution = {'x': None, 'fun': np.inf}
 
-    # Exception personnalisée pour arrêt anticipé
     class EarlyStoppingException(Exception):
-        pass
+        def __init__(self, reason):
+            self.reason = reason
 
-    # Callback qui vérifie la valeur de f(x)
+    start_time = time.monotonic()               # chrono au lancement
+
     def early_stop_callback(xk):
+        nonlocal start_time
         fx = fun(xk)
-        best_solution['x'] = xk.copy()
-        best_solution['fun'] = fx
-        #print(f"[Callback] f(x) = {fx:.6f}")
+        # mémoriser le meilleur point rencontré
+        if fx < best_solution['fun']:
+            best_solution['x'] = xk.copy()
+            best_solution['fun'] = fx
+
+        # condition 1 : objectif sous le seuil
         if fx < threshold:
-            raise EarlyStoppingException()
+            raise EarlyStoppingException("threshold reached")
+
+        # condition 2 : temps écoulé
+        if (max_time is not None) and (time.monotonic() - start_time > max_time):
+            raise EarlyStoppingException("time limit reached")
 
     try:
         result = minimize(
@@ -42,14 +52,14 @@ def minimize_with_early_stop(fun, x0, threshold=1e-3, method='L-BFGS-B', bounds=
             options=options,
             callback=early_stop_callback,
         )
-    except EarlyStoppingException:
-        print("seuil atteint")
+    except EarlyStoppingException as e:
+        reason = e.reason
         class ResultMock:
-            def __init__(self, x, fun):
+            def __init__(self, x, fun, reason):
                 self.x = x
                 self.fun = fun
                 self.success = False
-                self.message = "Stopped early due to function value < threshold."
-        result = ResultMock(best_solution['x'], best_solution['fun'])
+                self.message = f"Stopped early: {reason}."
+        result = ResultMock(best_solution['x'], best_solution['fun'], reason)
 
     return result
