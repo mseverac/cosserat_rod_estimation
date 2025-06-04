@@ -60,7 +60,7 @@ def project_to_SO3(R):
 
 
 
-def solve_cosserat_ivp(d, L, E, poisson, rho, position, rotation, n0, m0,print_=False):
+def solve_cosserat_ivp(d, L, E, poisson, rho, position, rotation, n0, m0,print_=False,n_element=50):
     """
     Résout les équations statiques d'une tige de Cosserat avec `solve_ivp`.
 
@@ -81,6 +81,8 @@ def solve_cosserat_ivp(d, L, E, poisson, rho, position, rotation, n0, m0,print_=
     Kse, Kbt = corde_Kse_Kbt(diameter=d, E=E, poisson=poisson)
     A = np.pi * (d / 2)**2  # Section transversale
     g = 9.81                # Gravité
+
+    last_s = None  # Variable pour stocker le dernier s pour le debug
 
 
     def Cosserat(s, Gamma, v_star=np.array([0, 0, 1]), u_star=np.zeros(3), f=np.zeros(3), l=np.zeros(3)):
@@ -154,13 +156,20 @@ def solve_cosserat_ivp(d, L, E, poisson, rho, position, rotation, n0, m0,print_=
         return dGamma
 
     def Cosserat_wrapper(s, Gamma):
-        return Cosserat(
+        
+
+        
+        res = Cosserat(
             s, Gamma,
             v_star=np.array([0, 0, 1]),
             u_star=np.zeros(3),
             f=np.array([0, 0, -A * rho * g]),
             l=np.zeros(3)
         )
+
+        
+
+        return res
 
     # Initial state Gamma0
     Gamma0 = np.concatenate([
@@ -173,7 +182,7 @@ def solve_cosserat_ivp(d, L, E, poisson, rho, position, rotation, n0, m0,print_=
     ])
 
     # Solve
-    t_eval = np.linspace(0, L, int(L / 0.01) + 1)
+    t_eval = np.linspace(0, L, n_element)
     sol = solve_ivp(Cosserat_wrapper, [0.0, L], Gamma0, t_eval=t_eval)
 
     p = sol.y[:3,-1]

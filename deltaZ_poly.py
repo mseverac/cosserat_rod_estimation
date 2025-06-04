@@ -186,19 +186,17 @@ def deltaZ_poly(p1,p2,L=0.6,plot=False,nb_points=50,print_distance=False):
 
     dz= np.abs(z2-z1)
 
-    if dz < 1e-2 :
-        dz = 1e-2
 
-    d = np.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2 + dz**2)
+    if dz < 1e-4 :
+        dz = 1e-4
+        print("dz is too small, setting to 1e-4 to avoid division by zero.")
 
-    print(f"Longueur horizontale du câble : {d}")
-    print(f"Longueur verticale du câble : {dz}")
-    l = L/np.sqrt((d*dz))
+    d = np.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2 )
+    l = L*np.sqrt(2)/np.sqrt(d**2 + dz**2)
 
     x_estime = interp_x_from_l(l)
 
-    print(f"x correspondant à longueur={l} : {x_estime}")
-
+    
     X_points = np.linspace(0, 1, nb_points)
 
     P_func = sp.lambdify(X, P.subs(x, x_estime), 'numpy')  # Convertir l'expression sympy en fonction numpy
@@ -222,6 +220,21 @@ def deltaZ_poly(p1,p2,L=0.6,plot=False,nb_points=50,print_distance=False):
     for i,p in enumerate(points) :
         p[2] = Z_points[i]
 
+    if print_distance :
+        dist = sum(np.linalg.norm(points[i+1]-points[i]) for i in range(len(points)-1))
+        print(f"Distance entre les points : {dist}")
+
+        print(f"Longueur horizontale du câble : {d}")
+        print(f"Longueur verticale du câble : {dz}")
+        
+
+        print(f"x correspondant à longueur={l} : {x_estime}")
+
+        print(f"p1 : {p1}")
+        print(f"p2 : {p2}")
+
+
+
 
     if plot :
         fig = plt.figure()
@@ -237,15 +250,12 @@ def deltaZ_poly(p1,p2,L=0.6,plot=False,nb_points=50,print_distance=False):
         ax.legend()
         plt.show()
 
-    if print_distance :
-        dist = sum(np.linalg.norm(points[i+1]-points[i]) for i in range(len(points)-1))
-        print(f"Distance entre les points : {dist}")
+    
 
     return points
 
-
 """
 
-points = deltaZ_poly([0,0,0.4],[0.4,0.2,0.2],plot=True)
 
-print(points)"""
+points = deltaZ_poly([0,0,0],[0.5,0.0,1.0],plot=True,print_distance=True,L=2)
+"""

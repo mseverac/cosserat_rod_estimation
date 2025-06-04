@@ -2,6 +2,10 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
 
+
+from cosserat_nordbo.cosserat_rod_estimation.utils import plot_frame
+
+
 #distance entre le capteur de force et le point d'attache de la corde
 l=0.15
 r=np.array([0,0,l])
@@ -110,8 +114,16 @@ def read_wrench_poses(file_path):
     return positions1, rotations1, positions2, rotations2, forces, torques
 
 # Example usage
-file_path = 'wrench_poses.txt'
+
+import os
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(script_dir, 'wrench_poses.txt')
+
+print(f"Reading wrench poses from file: {file_path}")
 positions1, rotations1, positions2, rotations2, forces, torques = read_wrench_poses(file_path)
+
+
 
 torques1 = torques.copy()
 torques2 = torques.copy()
@@ -128,27 +140,6 @@ for i, (torque, force) in enumerate(zip(torques, forces)):
     torques1[i] = torque - np.dot(r, force)
     torques2[i] = torque + np.dot(r, force) 
 
-
-def plot_frame(ax, R, T, length=1.0, name=None):
-    """
-    Trace un repère orthonormé 3D à partir d'une matrice de rotation R (3x3) et d'une translation T (3,)
-    """
-    # Origine
-    origin = T.reshape(3)
-    
-    # Axes : colonnes de R
-    x_axis = R[:, 0]
-    y_axis = R[:, 1]
-    z_axis = R[:, 2]
-    
-    # Tracer les 3 axes
-    ax.quiver(*origin, *(x_axis * length), color='r', label='x' if name is None else f'{name}_x')
-    ax.quiver(*origin, *(y_axis * length), color='g', label='y' if name is None else f'{name}_y')
-    ax.quiver(*origin, *(z_axis * length), color='b', label='z' if name is None else f'{name}_z')
-    
-    # Optionnel : nom de l'origine
-    if name:
-        ax.text(*origin, f'{name}', fontsize=12, color='k')
 
 # Exemple d'utilisation :
 
