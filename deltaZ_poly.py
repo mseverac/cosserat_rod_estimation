@@ -197,7 +197,6 @@ def deltaZ_poly(p1,p2,L=0.6,plot=False,nb_points=50,print_distance=False):
     x_estime = interp_x_from_l(l)
 
 
->>>>>>> 136a5746356cae69eb4a918d8cd7e3a0d8df3bbe
     X_points = np.linspace(0, 1, nb_points)
 
     P_func = sp.lambdify(X, P.subs(x, x_estime), 'numpy')  # Convertir l'expression sympy en fonction numpy
@@ -255,8 +254,3 @@ def deltaZ_poly(p1,p2,L=0.6,plot=False,nb_points=50,print_distance=False):
 
     return points
 
-"""
-
-
-points = deltaZ_poly([0,0,0],[0.5,0.0,1.0],plot=True,print_distance=True,L=2)
-"""

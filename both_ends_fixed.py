@@ -10,13 +10,13 @@ import elastica as ea
 import matplotlib.pyplot as plt
 
 
-from cosserat_nordbo.cosserat_rod_estimation.deltaZ_poly import deltaZ_poly
+from deltaZ_poly import deltaZ_poly
 
 
-from cosserat_nordbo.cosserat_rod_estimation.utils import plot_frame
+from utils import plot_frame
 
 
-from cosserat_nordbo.cosserat_rod_estimation.bc_cases_postprocessing import (
+from bc_cases_postprocessing import (
     plot_position,
     plot_orientation,
     plot_video,
@@ -40,17 +40,18 @@ class GeneralConstraintSimulator(
     pass
 
 
-<<<<<<< HEAD
 
 def cosserat_get_cable_state(start, end,start_rotation = np.matrix([[0,0,1],[0,1,0],[-1,0,0]],dtype=float), 
                              end_rotation =  np.matrix([[0,0,1],[0,1,0],[-1,0,0]],dtype=float) ,
-                             rod_length=0.6, n_elem=50,E=1e7, poisson_ratio=0.5,final_time=0.3,plot=False):
-=======
-def cosserat_get_cable_state(start, end,rod_length=0.6, n_elem=50,E=1e7, poisson_ratio=0.5,end_sim_time=0.10):
->>>>>>> 136a5746356cae69eb4a918d8cd7e3a0d8df3bbe
-    """Simule un câble avec les deux extrémités fixées et retourne pp_list."""
+                             rod_length=0.6, n_elem=50,E=1e7, poisson_ratio=0.5,final_time=0.3,plot=False,
+                             initial_position = None,
+                             damping_constant = 2.0,
+                             print_ = False,
+                             ):
     
-    print(f"Start: {start_rotation}, End: {end_rotation}")
+    if print_ :
+
+        print(f"Start: {start_rotation}, End: {end_rotation}")
     # Simulation container
     sim = GeneralConstraintSimulator()
 
@@ -60,10 +61,13 @@ def cosserat_get_cable_state(start, end,rod_length=0.6, n_elem=50,E=1e7, poisson
     end_direction = np.array(end_rotation[:, 2]).flatten()
     end_normal = np.array(end_rotation[:, 0]).flatten()
 
-    print(f"start normal: {normal}")
-    print(f"end normal: {end_normal}")
-    print(f"start direction: {direction}")
-    print(f"end direction: {end_direction}")
+
+    if print_ :
+
+        print(f"start normal: {normal}")
+        print(f"end normal: {end_normal}")
+        print(f"start direction: {direction}")
+        print(f"end direction: {end_direction}")
 
     
 
@@ -73,14 +77,19 @@ def cosserat_get_cable_state(start, end,rod_length=0.6, n_elem=50,E=1e7, poisson
     density = 1400
     shear_modulus = E / (1 + poisson_ratio)
 
-    initial_position = deltaZ_poly(start, end, L=rod_length, plot=False, nb_points=n_elem+1, print_distance=False)
+    if initial_position is None:
 
+        initial_position = deltaZ_poly(start, end, L=rod_length, plot=False, nb_points=n_elem+1, print_distance=False)
+
+
+    else :
+        if initial_position.shape[0] == 3 :
+            initial_position = initial_position.transpose()
+        
+
+        
     dt = 1e-5
-    damping_constant = 2.0
-<<<<<<< HEAD
-=======
-    final_time = end_sim_time  # seconds
->>>>>>> 136a5746356cae69eb4a918d8cd7e3a0d8df3bbe
+
     total_steps = int(final_time / dt)
     diagnostic_step_skip = 5
 
@@ -205,7 +214,6 @@ def cosserat_get_cable_state(start, end,rod_length=0.6, n_elem=50,E=1e7, poisson
 
 
 
-<<<<<<< HEAD
 
 
 
@@ -234,9 +242,6 @@ def cosserat_get_cable_state(start, end,rod_length=0.6, n_elem=50,E=1e7, poisson
 
 
 def plot_all_components(pp_list, rod_length=0.6, plot_3d=True,frames=None):
-=======
-def plot_all_components(pp_list, rod_length = 0.6):
->>>>>>> 136a5746356cae69eb4a918d8cd7e3a0d8df3bbe
     # Récupérer les dernières données
     last_step = -1
     positions = np.array(pp_list["position"][last_step])  # Shape (3, n_elem+1)

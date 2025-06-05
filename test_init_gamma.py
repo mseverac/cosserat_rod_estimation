@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-from cosserat_nordbo.cosserat_rod_estimation.init_gamma0 import get_cosserat_gamma0
-=======
+
 from init_gamma0 import get_cosserat_gamma0
->>>>>>> 136a5746356cae69eb4a918d8cd7e3a0d8df3bbe
 
 from txt_reader import positions1,positions2, rotations1, rotations2
 

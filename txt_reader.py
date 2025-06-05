@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from utils import *
 
 
-from cosserat_nordbo.cosserat_rod_estimation.utils import plot_frame
+from utils import plot_frame
 
 
 #distance entre le capteur de force et le point d'attache de la corde
@@ -142,9 +142,6 @@ for i, (torque, force) in enumerate(zip(torques, forces)):
     torques2[i] = torque + np.dot(r, force) 
 
 
-<<<<<<< HEAD
-# Exemple d'utilisation :
-=======
 
 def initialize_plot():
     
@@ -152,10 +149,9 @@ def initialize_plot():
 
     # 3D plot (large on the left)
     ax = fig.add_subplot(121, projection='3d')
-    ax.set_xlim([-0.5, 0.5])
-    ax.set_ylim([-0.5, 0.5])
-    ax.set_zlim([-0.5, 0.5])
->>>>>>> 136a5746356cae69eb4a918d8cd7e3a0d8df3bbe
+    ax.set_xlim([-0.2, 0.3])
+    ax.set_ylim([0.5, 0.99])
+    ax.set_zlim([-0.0, 0.5])
 
     ax.set_box_aspect([1, 1, 1])  # For isotropic axes
 

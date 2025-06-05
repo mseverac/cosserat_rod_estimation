@@ -41,7 +41,10 @@ for i in range(0, 30,5):
     print(f"rotations1[i]: {rotations1[i]}")
     print(f"positions1[i]: {positions1[i]}")
 
-    pp_list = cosserat_get_cable_state(start, end, start_rotation = rotations2[i], end_rotation = rotations1[i],final_time=0.06)
+    pp_list = cosserat_get_cable_state(start, end, 
+                                       start_rotation = rotations2[i], end_rotation = rotations1[i],
+                                       final_time=0.04,
+                                       )
 
     end_time = time.time()
     execution_time = end_time - start_time
